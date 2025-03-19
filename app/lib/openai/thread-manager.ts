@@ -230,12 +230,15 @@ export class ThreadManager {
       const messages = await openai.beta.threads.messages.list(this.threadId)
       console.log('✅ Retrieved thread history:', messages.data.length, 'messages')
 
-      return messages.data.map((message) => ({
-        id: message.id,
-        role: message.role,
-        content: this.getMessageContent(message.content),
-        createdAt: new Date(message.created_at * 1000),
-      }))
+      // Return messages in reverse chronological order (newest first)
+      return messages.data
+        .sort((a, b) => b.created_at - a.created_at)
+        .map((message) => ({
+          id: message.id,
+          role: message.role,
+          content: this.getMessageContent(message.content),
+          createdAt: new Date(message.created_at * 1000),
+        }))
     } catch (error: any) {
       console.error('❌ Failed to get thread history:', error)
       throw error

@@ -11,6 +11,7 @@ interface OpenAIContextType {
   currentPhase: ContentPhase
   sendMessage: (content: string) => Promise<void>
   setPhase: (phase: ContentPhase) => Promise<void>
+  threadManager: ThreadManager
 }
 
 const OpenAIContext = createContext<OpenAIContextType | null>(null)
@@ -41,11 +42,11 @@ export function OpenAIProvider({ children }: { children: React.ReactNode }) {
     try {
       // Add user message
       const userMessage = await threadManager.addMessage(content)
-      setMessages(prev => [...prev, userMessage])
+      setMessages(prev => [userMessage, ...prev])
 
       // Get assistant response
       const assistantMessage = await threadManager.getAssistantResponse()
-      setMessages(prev => [...prev, assistantMessage])
+      setMessages(prev => [assistantMessage, ...prev])
     } catch (error) {
       console.error('Failed to send message:', error)
     } finally {
@@ -66,6 +67,7 @@ export function OpenAIProvider({ children }: { children: React.ReactNode }) {
         currentPhase,
         sendMessage,
         setPhase,
+        threadManager
       }}
     >
       {children}
