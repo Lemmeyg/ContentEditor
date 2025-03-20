@@ -44,15 +44,24 @@ export class ThreadManager {
     const rawText = textContent.text.value.trim()
     console.log('Raw text from OpenAI:', rawText)
 
-    // For user messages that don't start with JSON, return a simple JSON structure
-    if (!rawText.startsWith('{')) {
-      return JSON.stringify({
-        discussion: rawText,
-        draft: ""
-      })
-    }
-
+    // For user messages that include currentDraft, parse and format appropriately
     try {
+      const parsed = JSON.parse(rawText)
+      if (parsed.currentDraft !== undefined) {
+        return JSON.stringify({
+          discussion: parsed.discussion || "",
+          draft: parsed.currentDraft || ""
+        })
+      }
+      
+      // Handle existing message formats
+      if (!rawText.startsWith('{')) {
+        return JSON.stringify({
+          discussion: rawText,
+          draft: ""
+        })
+      }
+
       // Extract the actual text content from the JSON structure
       const extractTextContent = (text: string): { discussion: string; draft: string } => {
         // Try to parse the JSON first
@@ -102,8 +111,8 @@ export class ThreadManager {
         draft: draft.trim()
       })
 
-    } catch (e) {
-      console.error('Content extraction failed:', e)
+    } catch (error) {
+      console.error('Content extraction failed:', error)
       return JSON.stringify({
         discussion: rawText,
         draft: ""
@@ -129,9 +138,20 @@ export class ThreadManager {
     }
 
     try {
+      // Parse the content to check if it includes currentDraft
+      let messageContent = content;
+      try {
+        const parsed = JSON.parse(content);
+        if (parsed.currentDraft !== undefined) {
+          messageContent = `The user says: ${parsed.discussion}\n\nCurrent state of the content:\n${parsed.currentDraft}`;
+        }
+      } catch {
+        // If parsing fails, use the content as is
+      }
+
       const message = await openai.beta.threads.messages.create(this.threadId, {
         role: 'user',
-        content,
+        content: messageContent,
       })
 
       console.log('✅ Message added to thread')

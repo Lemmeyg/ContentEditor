@@ -6,14 +6,14 @@ import { useOpenAI } from '@/providers/openai-provider'
 export function DiscussionPanel() {
   const { messages, sendMessage, isLoading } = useOpenAI()
   const [input, setInput] = useState('')
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messagesStartRef = useRef<HTMLDivElement>(null)
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  const scrollToTop = () => {
+    messagesStartRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
   useEffect(() => {
-    scrollToBottom()
+    scrollToTop()
   }, [messages])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,6 +38,7 @@ export function DiscussionPanel() {
     <div className="h-full w-full flex flex-col bg-white">
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div ref={messagesStartRef} />
         {messages.map((message) => (
           <div
             key={message.id}
@@ -57,7 +58,6 @@ export function DiscussionPanel() {
             </div>
           </div>
         ))}
-        <div ref={messagesEndRef} />
       </div>
 
       {/* Input Area */}

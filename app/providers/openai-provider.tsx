@@ -12,6 +12,8 @@ interface OpenAIContextType {
   sendMessage: (content: string) => Promise<void>
   setPhase: (phase: ContentPhase) => Promise<void>
   threadManager: ThreadManager
+  currentContent: string
+  setCurrentContent: (content: string) => void
 }
 
 const OpenAIContext = createContext<OpenAIContextType | null>(null)
@@ -21,6 +23,7 @@ export function OpenAIProvider({ children }: { children: React.ReactNode }) {
   const [messages, setMessages] = useState<ThreadMessage[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [currentPhase, setCurrentPhase] = useState<ContentPhase>(ContentPhase.GOALS)
+  const [currentContent, setCurrentContent] = useState<string>('')
 
   useEffect(() => {
     const initThread = async () => {
@@ -40,8 +43,14 @@ export function OpenAIProvider({ children }: { children: React.ReactNode }) {
   const sendMessage = async (content: string) => {
     setIsLoading(true)
     try {
+      // Create a message that includes both the user's input and current content state
+      const messageWithContent = JSON.stringify({
+        discussion: content,
+        currentDraft: currentContent
+      })
+
       // Add user message
-      const userMessage = await threadManager.addMessage(content)
+      const userMessage = await threadManager.addMessage(messageWithContent)
       setMessages(prev => [userMessage, ...prev])
 
       // Get assistant response
@@ -67,7 +76,9 @@ export function OpenAIProvider({ children }: { children: React.ReactNode }) {
         currentPhase,
         sendMessage,
         setPhase,
-        threadManager
+        threadManager,
+        currentContent,
+        setCurrentContent
       }}
     >
       {children}

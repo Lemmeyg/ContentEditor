@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { ThreadMessage } from '@/types'
 import { useOpenAI } from '@/providers/openai-provider'
 
@@ -12,9 +12,11 @@ interface MessageDisplay extends ThreadMessage {
 }
 
 export function ContentFrame() {
-  const { messages: contextMessages, currentPhase, threadManager } = useOpenAI()
+  const { messages: contextMessages, currentPhase, threadManager, setCurrentContent } = useOpenAI()
   const [messages, setMessages] = useState<MessageDisplay[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const contentRef = useRef<HTMLDivElement>(null)
+  const [savedContent, setSavedContent] = useState('')
 
   useEffect(() => {
     console.log('ContentFrame mounted');
@@ -180,6 +182,30 @@ export function ContentFrame() {
     content: latestDraft?.parsedContent
   });
 
+  // Update content when new draft arrives
+  useEffect(() => {
+    if (latestDraft?.parsedContent?.draft && contentRef.current) {
+      // Convert newlines to <br> and preserve paragraphs
+      const formattedContent = latestDraft.parsedContent.draft
+        .split('\n\n') // Split on double newlines for paragraphs
+        .map(paragraph => `<p>${paragraph.replace(/\n/g, '<br>')}</p>`)
+        .join('');
+      
+      // Always update content when a new draft arrives from the assistant
+      if (latestDraft.role === 'assistant') {
+        contentRef.current.innerHTML = formattedContent;
+        setCurrentContent(formattedContent);
+      }
+    }
+  }, [latestDraft]);
+
+  const handleBlur = () => {
+    if (contentRef.current) {
+      const newContent = contentRef.current.innerHTML || '';
+      setCurrentContent(newContent);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full bg-white rounded-lg shadow">
       <div className="p-4 border-b">
@@ -187,41 +213,28 @@ export function ContentFrame() {
         <p className="text-sm text-gray-600">Current Phase: {currentPhase}</p>
       </div>
 
-      {(() => {
-        console.log('ContentFrame: Render state:', {
-          hasLatestDraft: !!latestDraft,
-          parsedContent: latestDraft?.parsedContent,
-          draftContent: latestDraft?.parsedContent?.draft,
-          messageCount: messages.length
-        });
-        
-        return (
-          <div className="flex-1 p-4 overflow-y-auto">
-            {latestDraft?.parsedContent?.draft ? (
-              <div className="prose max-w-none">
-                {(() => {
-                  console.log('ContentFrame: Rendering draft content:', latestDraft.parsedContent.draft);
-                  return (
-                    <div className="whitespace-pre-wrap">
-                      {latestDraft.parsedContent.draft}
-                    </div>
-                  );
-                })()}
-                <div className="text-xs mt-2 text-gray-500">
-                  Last updated: {new Date(latestDraft.createdAt).toLocaleString()}
-                </div>
+      <div className="flex-1 p-4 overflow-y-auto">
+        {latestDraft?.parsedContent?.draft ? (
+          <div className="prose max-w-none flex justify-center">
+            <div className="w-[600px]">
+              <div
+                ref={contentRef}
+                contentEditable
+                suppressContentEditableWarning
+                onBlur={handleBlur}
+                className="whitespace-pre-wrap text-[12px] font-mono focus:outline-none border border-transparent focus:border-gray-300 rounded-md p-3 min-h-[200px] [&>p]:mb-4 last:[&>p]:mb-0"
+              />
+              <div className="text-xs mt-2 text-gray-500">
+                Last updated: {new Date(latestDraft.createdAt).toLocaleString()}
               </div>
-            ) : (
-              <div className="text-gray-500 italic">
-                {(() => {
-                  console.log('ContentFrame: No draft content available');
-                  return 'No content draft available yet. Start a discussion to generate content.';
-                })()}
-              </div>
-            )}
+            </div>
           </div>
-        );
-      })()}
+        ) : (
+          <div className="text-gray-500 italic text-sm">
+            No content draft available yet. Start a discussion to generate content.
+          </div>
+        )}
+      </div>
     </div>
   );
 } 

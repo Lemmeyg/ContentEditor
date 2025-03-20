@@ -35,6 +35,7 @@ The process should follow the stages of:
 3. AI reviews input and creates output in content frame
 4. User reviews/edits content frame
 5. User requests changes or approval in discussion frame
+6. Edited content frame and discsussion frame is sent back to the AI
 
 ---
 
