@@ -2,7 +2,7 @@ import OpenAI from 'openai'
 import { ContentPhase } from '@/types'
 
 // Validate API key format
-const getOpenAIConfig = () => {
+export function getOpenAIConfig() {
   const apiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY
   const assistantId = process.env.NEXT_PUBLIC_OPENAI_ASSISTANT_ID
 
@@ -14,21 +14,25 @@ const getOpenAIConfig = () => {
   })
 
   if (!apiKey) {
-    throw new Error('OpenAI API key is not defined in environment variables. Please add NEXT_PUBLIC_OPENAI_API_KEY to your .env file.')
+    throw new Error('OpenAI API key is not defined in environment variables')
   }
 
   if (!assistantId) {
-    throw new Error('OpenAI Assistant ID is not defined in environment variables. Please add NEXT_PUBLIC_OPENAI_ASSISTANT_ID to your .env file.')
+    throw new Error('OpenAI Assistant ID is not defined in environment variables')
   }
 
-  // Update validation to accept both standard and project API keys
+  // Validate API key format
   if (!apiKey.startsWith('sk-')) {
-    throw new Error('Invalid API key format. OpenAI API keys should start with "sk-"')
+    throw new Error('Invalid OpenAI API key format')
   }
 
   return {
     apiKey,
-    assistantId
+    assistantId,
+    client: new OpenAI({
+      apiKey,
+      dangerouslyAllowBrowser: true
+    })
   }
 }
 
@@ -89,10 +93,10 @@ Always provide both a discussion response and relevant draft content in your JSO
 `
 
 export const PHASE_PROMPTS = {
-  [ContentPhase.GOALS]: "Let's start by understanding your content goals. What's the main purpose of this content, and who is your target audience?",
-  [ContentPhase.NARRATIVE]: "Now, let's develop the narrative. What key messages or story angles would resonate with your audience?",
-  [ContentPhase.STRUCTURE]: "Let's organize your content. How would you like to structure the main sections?",
-  [ContentPhase.CONTENT]: "Time to create the content. I'll help you write and refine each section.",
-  [ContentPhase.CONCLUSION]: "Let's craft a strong ending. What action do you want your readers to take?",
-  [ContentPhase.REVIEW]: "Let's review and polish your content. I'll help you check for clarity, coherence, and impact.",
+  [ContentPhase.GOALS]: "Let's start by defining the goals and target audience for this content. What are you trying to achieve?",
+  [ContentPhase.NARRATIVE]: "Now, let's work on the narrative structure and hooks. How should we engage the reader?",
+  [ContentPhase.STRUCTURE]: "Let's outline the main sections and organize the key points. How should we structure this?",
+  [ContentPhase.CONTENT]: "Time to write the main content. I'll help you craft clear and engaging prose.",
+  [ContentPhase.CONCLUSION]: "Let's work on a strong conclusion and call-to-action. How should we wrap this up?",
+  [ContentPhase.REVIEW]: "Let's review and polish the content. What aspects need improvement?"
 }

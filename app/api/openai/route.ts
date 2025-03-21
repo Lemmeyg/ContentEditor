@@ -1,21 +1,23 @@
-import { NextResponse } from 'next/server'
-import OpenAI from 'openai'
 import { getOpenAIConfig } from '@/lib/openai/config'
+import { NextResponse } from 'next/server'
 
-const openai = new OpenAI({
-  apiKey: getOpenAIConfig().apiKey,
-  baseURL: 'https://api.openai.com/v1',
-})
-
-export async function POST(request: Request) {
+export async function POST(req: Request) {
   try {
-    const body = await request.json()
-    // Handle your OpenAI API calls here
-    // Return response
-    return NextResponse.json({ success: true })
+    const { messages } = await req.json()
+    const { client } = getOpenAIConfig()
+
+    const response = await client.chat.completions.create({
+      model: 'gpt-4-turbo-preview',
+      messages,
+      temperature: 0.7,
+      max_tokens: 1000,
+    })
+
+    return NextResponse.json(response.choices[0].message)
   } catch (error) {
+    console.error('Error in OpenAI route:', error)
     return NextResponse.json(
-      { error: 'Internal Server Error' },
+      { error: 'Failed to process request' },
       { status: 500 }
     )
   }

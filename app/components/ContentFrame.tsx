@@ -44,7 +44,7 @@ export function ContentFrame() {
           parsed
         });
         return {
-          ...msg,
+      ...msg,
           parsedContent: parsed
         };
       });
@@ -352,8 +352,8 @@ export function ContentFrame() {
       <div className="p-4 border-b">
         <div className="flex justify-between items-center">
           <div>
-            <h2 className="text-lg font-semibold text-gray-800">Content Draft</h2>
-            <p className="text-sm text-gray-600">Current Phase: {currentPhase}</p>
+        <h2 className="text-lg font-semibold text-gray-800">Content Draft</h2>
+        <p className="text-sm text-gray-600">Current Phase: {currentPhase}</p>
           </div>
           <div className="flex gap-2">
             <button
@@ -467,8 +467,8 @@ export function ContentFrame() {
                 onBlur={handleBlur}
                 className="whitespace-pre-wrap text-[12px] font-mono focus:outline-none border border-transparent focus:border-gray-300 rounded-md p-3 min-h-[200px] [&>p]:mb-4 last:[&>p]:mb-0"
               />
-              <div className="text-xs mt-2 text-gray-500">
-                Last updated: {new Date(latestDraft.createdAt).toLocaleString()}
+            <div className="text-xs mt-2 text-gray-500">
+              Last updated: {new Date(latestDraft.createdAt).toLocaleString()}
               </div>
             </div>
           </div>

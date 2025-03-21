@@ -7,6 +7,7 @@ export function DiscussionPanel() {
   const { messages, sendMessage, isLoading } = useOpenAI()
   const [input, setInput] = useState('')
   const messagesStartRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const scrollToTop = () => {
     messagesStartRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -14,7 +15,11 @@ export function DiscussionPanel() {
 
   useEffect(() => {
     scrollToTop()
-  }, [messages])
+    // Focus input field after AI response (when not loading and messages exist)
+    if (!isLoading && messages.length > 0 && inputRef.current) {
+      inputRef.current.focus()
+    }
+  }, [messages, isLoading])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -26,16 +31,35 @@ export function DiscussionPanel() {
   }
 
   const parseMessageContent = (content: string): string => {
-    try {
-      const parsed = JSON.parse(content)
-      return parsed.discussion || content
-    } catch {
+    // Always try to extract just the message content
+    if (typeof content === 'string') {
+      try {
+        const parsed = JSON.parse(content);
+        if (parsed.discussion) {
+          // Clean the discussion content before returning
+          return parsed.discussion
+            .replace(/^(?:The user says?:?\s*|The user said:?\s*)/i, '')
+            .replace(/\s*Current state of the content:[\s\S]*$/, '')
+            .trim();
+        }
+      } catch {}
+      
+      // If JSON parsing fails or no discussion field, clean the raw string
       return content
+        .replace(/^(?:The user says?:?\s*|The user said:?\s*)/i, '')
+        .replace(/\s*Current state of the content:[\s\S]*$/, '')
+        .trim();
     }
+    return content;
   }
 
   return (
     <div className="h-full w-full flex flex-col bg-white">
+      {/* Header */}
+      <div className="p-4 border-b border-gray-200">
+        <h2 className="text-lg font-semibold text-gray-800">Discussion</h2>
+      </div>
+
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         <div ref={messagesStartRef} />
@@ -61,9 +85,10 @@ export function DiscussionPanel() {
       </div>
 
       {/* Input Area */}
-      <div className="border-t border-gray-200 p-4">
+      <div className="border-t border-gray-200 p-4 bg-white">
         <form onSubmit={handleSubmit} className="flex gap-2">
           <input
+            ref={inputRef}
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}

@@ -21,13 +21,13 @@ The process should follow the stages of:
 ## UX Layout
 - **Menu/Settings Panel**: 
   - Far left of screen 
-  - 20% screen width
+  - 15% screen width
 - **Discussion Panel**:
-  - Bottom of screen
-  - 80% width × 30% height
+  - between the menu/setting panel and the content frame screen
+  - 35% width × 100% height
 - **Content Frame**:
   - Top right of screen
-  - Remaining space (80% width × 70% height)
+  - Remaining space (60% width × 100% height)
 
 ## AI Interaction Process
 1. In discussion frame, AI prompts user with question/task

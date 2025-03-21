@@ -1,6 +1,6 @@
 import { openai } from './config'
 import { ThreadMessage } from '@/types'
-import { MessageContentText } from 'openai/resources/beta/threads/messages/messages'
+import { MessageContent } from 'openai/resources/beta/threads/messages'
 
 interface AssistantResponse {
   discussion: string;
