@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import { ThreadManager } from '@/lib/openai/thread-manager'
 import { ContentPhase, ThreadMessage } from '@/types'
 import { PHASE_PROMPTS } from '@/lib/openai/config'
+import { Assistant, assistants } from '../config/assistants'
 
 interface OpenAIContextType {
   messages: ThreadMessage[]
@@ -14,6 +15,8 @@ interface OpenAIContextType {
   threadManager: ThreadManager
   currentContent: string
   setCurrentContent: (content: string) => void
+  currentAssistant: Assistant
+  setAssistant: (assistant: Assistant) => Promise<void>
 }
 
 const OpenAIContext = createContext<OpenAIContextType | null>(null)
@@ -24,6 +27,7 @@ export function OpenAIProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(false)
   const [currentPhase, setCurrentPhase] = useState<ContentPhase>(ContentPhase.GOALS)
   const [currentContent, setCurrentContent] = useState<string>('')
+  const [currentAssistant, setCurrentAssistant] = useState<Assistant>(assistants[0])
 
   useEffect(() => {
     const initThread = async () => {
@@ -68,6 +72,26 @@ export function OpenAIProvider({ children }: { children: React.ReactNode }) {
     await sendMessage(PHASE_PROMPTS[phase])
   }
 
+  const setAssistant = async (assistant: Assistant) => {
+    setIsLoading(true)
+    try {
+      // Update the thread manager with the new assistant ID
+      await threadManager.updateAssistant(assistant.id)
+      setCurrentAssistant(assistant)
+      
+      // Clear messages and start fresh with the new assistant
+      setMessages([])
+      await threadManager.createThread()
+      
+      // Send initial message to introduce the new assistant
+      await sendMessage(`I've switched to the ${assistant.name} assistant. ${assistant.description}`)
+    } catch (error) {
+      console.error('Failed to switch assistant:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <OpenAIContext.Provider
       value={{
@@ -78,7 +102,9 @@ export function OpenAIProvider({ children }: { children: React.ReactNode }) {
         setPhase,
         threadManager,
         currentContent,
-        setCurrentContent
+        setCurrentContent,
+        currentAssistant,
+        setAssistant
       }}
     >
       {children}

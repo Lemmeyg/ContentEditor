@@ -30,6 +30,19 @@ interface AssistantSchemaResponse {
 export class ThreadManager {
   private threadId: string | null = null
   private runId: string | null = null
+  private assistantId: string | null = null
+
+  constructor(initialAssistantId?: string) {
+    this.assistantId = initialAssistantId || process.env.NEXT_PUBLIC_OPENAI_ASSISTANT_ID || null
+  }
+
+  async updateAssistant(assistantId: string): Promise<void> {
+    this.assistantId = assistantId
+    // If there's an active thread, we'll need to create a new one with the new assistant
+    if (this.threadId) {
+      await this.createThread()
+    }
+  }
 
   private getMessageContent(content: any[]): string {
     // Find the first text content block
@@ -172,16 +185,15 @@ export class ThreadManager {
       throw new Error('Thread not initialized')
     }
 
-    const assistantId = process.env.NEXT_PUBLIC_OPENAI_ASSISTANT_ID
-    if (!assistantId) {
-      throw new Error('NEXT_PUBLIC_OPENAI_ASSISTANT_ID is not configured')
+    if (!this.assistantId) {
+      throw new Error('Assistant ID is not configured')
     }
 
     try {
       // Create a run
-      console.log('Creating run with assistant:', assistantId)
+      console.log('Creating run with assistant:', this.assistantId)
       const run = await openai.beta.threads.runs.create(this.threadId, {
-        assistant_id: assistantId,
+        assistant_id: this.assistantId,
       })
       this.runId = run.id
       console.log('✅ Run created:', run.id)

@@ -2,9 +2,11 @@
 
 import { ContentPhase } from '@/types'
 import { useOpenAI } from '@/providers/openai-provider'
+import { AssistantSelector } from './assistant-selector'
+import { Assistant } from '../config/assistants'
 
 export function MenuPanel() {
-  const { currentPhase, setPhase, isLoading } = useOpenAI()
+  const { currentPhase, setPhase, isLoading, setAssistant } = useOpenAI()
 
   const phases = [
     { phase: ContentPhase.GOALS, label: '1. Goals & Audience' },
@@ -15,12 +17,21 @@ export function MenuPanel() {
     { phase: ContentPhase.REVIEW, label: '6. Review & Editing' },
   ]
 
+  const handleAssistantChange = (assistant: Assistant) => {
+    setAssistant(assistant);
+  };
+
   return (
     <aside className="h-full w-full flex flex-col bg-gray-50">
       {/* Header */}
       <div className="p-4 border-b border-gray-200">
         <h2 className="text-xl font-semibold text-gray-900">Content Editor</h2>
         <p className="text-sm text-gray-500 mt-1">AI-Powered Content Creation</p>
+      </div>
+
+      {/* Assistant Selector */}
+      <div className="border-b border-gray-200">
+        <AssistantSelector onAssistantChange={handleAssistantChange} />
       </div>
 
       {/* Phase Navigation */}

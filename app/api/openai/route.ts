@@ -1,12 +1,12 @@
-import { getOpenAIConfig } from '@/lib/openai/config'
 import { NextResponse } from 'next/server'
+import OpenAI from 'openai'
+import { openai } from '@/lib/openai/config'
 
 export async function POST(req: Request) {
   try {
     const { messages } = await req.json()
-    const { client } = getOpenAIConfig()
 
-    const response = await client.chat.completions.create({
+    const response = await openai.chat.completions.create({
       model: 'gpt-4-turbo-preview',
       messages,
       temperature: 0.7,
