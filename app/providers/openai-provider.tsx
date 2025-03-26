@@ -2,16 +2,13 @@
 
 import { createContext, useContext, useEffect, useState } from 'react'
 import { ThreadManager } from '@/lib/openai/thread-manager'
-import { ContentPhase, ThreadMessage } from '@/types'
-import { PHASE_PROMPTS } from '@/lib/openai/config'
+import { ThreadMessage } from '@/types'
 import { Assistant, assistants } from '../config/assistants'
 
 interface OpenAIContextType {
   messages: ThreadMessage[]
   isLoading: boolean
-  currentPhase: ContentPhase
   sendMessage: (content: string) => Promise<void>
-  setPhase: (phase: ContentPhase) => Promise<void>
   threadManager: ThreadManager
   currentContent: string
   setCurrentContent: (content: string) => void
@@ -25,7 +22,6 @@ export function OpenAIProvider({ children }: { children: React.ReactNode }) {
   const [threadManager] = useState(() => new ThreadManager())
   const [messages, setMessages] = useState<ThreadMessage[]>([])
   const [isLoading, setIsLoading] = useState(false)
-  const [currentPhase, setCurrentPhase] = useState<ContentPhase>(ContentPhase.GOALS)
   const [currentContent, setCurrentContent] = useState<string>('')
   const [currentAssistant, setCurrentAssistant] = useState<Assistant>(assistants[0])
 
@@ -67,11 +63,6 @@ export function OpenAIProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const setPhase = async (phase: ContentPhase) => {
-    setCurrentPhase(phase)
-    await sendMessage(PHASE_PROMPTS[phase])
-  }
-
   const setAssistant = async (assistant: Assistant) => {
     setIsLoading(true)
     try {
@@ -97,9 +88,7 @@ export function OpenAIProvider({ children }: { children: React.ReactNode }) {
       value={{
         messages,
         isLoading,
-        currentPhase,
         sendMessage,
-        setPhase,
         threadManager,
         currentContent,
         setCurrentContent,
