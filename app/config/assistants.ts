@@ -27,7 +27,7 @@ description: 'TBD'
   },
   {
     id: process.env.NEXT_PUBLIC_OPENAI_ASSISTANT_ID_5 || '',
-    name: 'Project Requirments Document',
-   description: 'TBD'
+    name: 'Generalist Creator',
+   description: 'A General writer and editor'
   }
 ]; 

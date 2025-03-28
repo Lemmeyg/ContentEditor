@@ -8,6 +8,13 @@ export function DiscussionPanel() {
   const [input, setInput] = useState('')
   const messagesStartRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const [localLoading, setLocalLoading] = useState(false)
+
+  // Debug logging for isLoading changes
+  useEffect(() => {
+    console.log('DiscussionPanel: isLoading state changed to:', isLoading, new Date().toISOString())
+    setLocalLoading(isLoading)
+  }, [isLoading])
 
   const scrollToTop = () => {
     messagesStartRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -23,11 +30,26 @@ export function DiscussionPanel() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!input.trim() || isLoading) return
+    if (!input.trim() || localLoading) {
+      console.log('Submit prevented - Empty input or already loading:', { input: input.trim(), localLoading, isLoading })
+      return
+    }
 
+    console.log('Starting message submission - localLoading:', localLoading, 'isLoading:', isLoading)
     const content = input.trim()
     setInput('')
-    await sendMessage(content)
+    setLocalLoading(true)
+    
+    try {
+      console.log('Before sendMessage call - localLoading:', localLoading, 'isLoading:', isLoading)
+      await sendMessage(content)
+      console.log('After sendMessage call - localLoading:', localLoading, 'isLoading:', isLoading)
+    } catch (error) {
+      console.error('Error in handleSubmit:', error)
+    } finally {
+      setLocalLoading(false)
+    }
+    console.log('Message submission complete - localLoading:', localLoading, 'isLoading:', isLoading)
   }
 
   const parseMessageContent = (content: string): string => {
@@ -92,16 +114,16 @@ export function DiscussionPanel() {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder={isLoading ? "AI is thinking..." : "Type your message..."}
-            disabled={isLoading}
+            placeholder={localLoading ? "AI is thinking..." : "Type your message..."}
+            disabled={localLoading}
             className="flex-1 min-h-[40px] px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:bg-gray-50"
           />
           <button
             type="submit"
-            disabled={isLoading || !input.trim()}
+            disabled={localLoading || !input.trim()}
             className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:hover:bg-blue-600"
           >
-            {isLoading ? (
+            {localLoading ? (
               <span className="material-icons animate-spin text-sm">refresh</span>
             ) : (
               'Send'

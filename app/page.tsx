@@ -1,6 +1,6 @@
 import { MenuPanel } from '@/components/menu-panel'
 import { DiscussionPanel } from '@/components/discussion-panel'
-import { ContentFrame } from '@/components/ContentFrame'
+import { ContentFrame } from '@/components/content-frame'
 
 export default function Home() {
   return (
