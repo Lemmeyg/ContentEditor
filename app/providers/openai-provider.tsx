@@ -66,6 +66,18 @@ export function OpenAIProvider({ children }: { children: React.ReactNode }) {
 
       console.log('OpenAIProvider: Getting assistant response')
       const assistantMessage = await threadManager.getAssistantResponse()
+      
+      // Parse the assistant's response to extract draft content
+      try {
+        const parsedContent = JSON.parse(assistantMessage.content)
+        if (parsedContent.draft) {
+          console.log('OpenAIProvider: Updating draft content')
+          setCurrentContent(parsedContent.draft)
+        }
+      } catch (parseError) {
+        console.error('Failed to parse assistant response:', parseError)
+      }
+
       setMessages(prev => [assistantMessage, ...prev])
       console.log('OpenAIProvider: Message exchange complete')
     } catch (error) {
@@ -84,6 +96,7 @@ export function OpenAIProvider({ children }: { children: React.ReactNode }) {
       setCurrentAssistant(assistant)
       
       setMessages([])
+      setCurrentContent('')
       await threadManager.createThread()
       
       await sendMessage(`I've switched to the ${assistant.name} assistant. ${assistant.description}`)

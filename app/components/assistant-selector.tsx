@@ -35,8 +35,11 @@ export function AssistantSelector({ onAssistantChange, currentAssistant }: Assis
           <SelectValue placeholder="Select an assistant" />
         </SelectTrigger>
         <SelectContent>
-          {assistants.map((assistant) => (
-            <SelectItem key={assistant.id} value={assistant.name}>
+          {assistants.map((assistant, index) => (
+            <SelectItem 
+              key={`${index}-${assistant.name}`} 
+              value={assistant.name}
+            >
               {assistant.name}
             </SelectItem>
           ))}
